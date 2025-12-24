@@ -1,0 +1,27 @@
+# 构建目录
+build/
+cmake-build-*/
+*.o
+*.a
+*.so
+*.dylib
+
+# 可执行文件
+robot_control
+test_example
+
+# IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.log
+
