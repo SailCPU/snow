@@ -26,11 +26,12 @@
 namespace snow {
 
 // 日志级别枚举，对应 glog 的级别
+// 使用 LOG_LEVEL_ 前缀避免与 Windows 系统宏冲突
 enum LogSeverity {
-    INFO = 0,
-    WARNING = 1,
-    ERROR = 2,
-    FATAL = 3
+    LOG_LEVEL_INFO = 0,
+    LOG_LEVEL_WARNING = 1,
+    LOG_LEVEL_ERROR = 2,
+    LOG_LEVEL_FATAL = 3
 };
 
 // 日志流类，用于流式输出
@@ -44,7 +45,7 @@ public:
         if (!message_.str().empty()) {
             Flush();
         }
-        if (severity_ == FATAL) {
+        if (severity_ == LOG_LEVEL_FATAL) {
             std::abort();
         }
     }
@@ -97,19 +98,19 @@ private:
         char level_char;
         spdlog::level::level_enum spdlog_level;
         switch (severity_) {
-            case INFO:
+            case LOG_LEVEL_INFO:
                 level_char = 'I';
                 spdlog_level = spdlog::level::info;
                 break;
-            case WARNING:
+            case LOG_LEVEL_WARNING:
                 level_char = 'W';
                 spdlog_level = spdlog::level::warn;
                 break;
-            case ERROR:
+            case LOG_LEVEL_ERROR:
                 level_char = 'E';
                 spdlog_level = spdlog::level::err;
                 break;
-            case FATAL:
+            case LOG_LEVEL_FATAL:
                 level_char = 'F';
                 spdlog_level = spdlog::level::critical;
                 break;
@@ -227,19 +228,19 @@ std::shared_ptr<spdlog::logger> LogMessage::logger_ = nullptr;
 } // namespace snow
 
 // 日志宏定义，类似 glog 风格
-#define LOG_INFO  snow::LogMessage(snow::INFO, __FILE__, __LINE__)
-#define LOG_WARN  snow::LogMessage(snow::WARNING, __FILE__, __LINE__)
-#define LOG_ERR   snow::LogMessage(snow::ERROR, __FILE__, __LINE__)
-#define LOG_FATAL snow::LogMessage(snow::FATAL, __FILE__, __LINE__)
+#define LOG_INFO  snow::LogMessage(snow::LOG_LEVEL_INFO, __FILE__, __LINE__)
+#define LOG_WARN  snow::LogMessage(snow::LOG_LEVEL_WARNING, __FILE__, __LINE__)
+#define LOG_ERR   snow::LogMessage(snow::LOG_LEVEL_ERROR, __FILE__, __LINE__)
+#define LOG_FATAL snow::LogMessage(snow::LOG_LEVEL_FATAL, __FILE__, __LINE__)
 
 // 条件日志宏
 #define LOG_INFO_IF(condition)  \
-    !(condition) ? (void)0 : snow::LogMessage(snow::INFO, __FILE__, __LINE__)
+    !(condition) ? (void)0 : snow::LogMessage(snow::LOG_LEVEL_INFO, __FILE__, __LINE__)
 #define LOG_WARN_IF(condition) \
-    !(condition) ? (void)0 : snow::LogMessage(snow::WARNING, __FILE__, __LINE__)
+    !(condition) ? (void)0 : snow::LogMessage(snow::LOG_LEVEL_WARNING, __FILE__, __LINE__)
 #define LOG_ERR_IF(condition)   \
-    !(condition) ? (void)0 : snow::LogMessage(snow::ERROR, __FILE__, __LINE__)
+    !(condition) ? (void)0 : snow::LogMessage(snow::LOG_LEVEL_ERROR, __FILE__, __LINE__)
 #define LOG_FATAL_IF(condition) \
-    !(condition) ? (void)0 : snow::LogMessage(snow::FATAL, __FILE__, __LINE__)
+    !(condition) ? (void)0 : snow::LogMessage(snow::LOG_LEVEL_FATAL, __FILE__, __LINE__)
 
 
