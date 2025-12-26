@@ -26,7 +26,7 @@
 namespace snow {
 
 // 日志级别枚举，对应 glog 的级别
-// 使用 LOG_LEVEL_ 前缀避免与 Windows 系统宏冲突
+// 使用 LOG_LEVEL_ 前缀避免与 Windows 系统宏冲突（如 ERROR, INFO 等）
 enum LogSeverity {
     LOG_LEVEL_INFO = 0,
     LOG_LEVEL_WARNING = 1,
@@ -228,6 +228,7 @@ std::shared_ptr<spdlog::logger> LogMessage::logger_ = nullptr;
 } // namespace snow
 
 // 日志宏定义，类似 glog 风格
+// 注意：宏名称保持 LOG_INFO, LOG_WARN 等，但内部使用带前缀的枚举值避免冲突
 #define LOG_INFO  snow::LogMessage(snow::LOG_LEVEL_INFO, __FILE__, __LINE__)
 #define LOG_WARN  snow::LogMessage(snow::LOG_LEVEL_WARNING, __FILE__, __LINE__)
 #define LOG_ERR   snow::LogMessage(snow::LOG_LEVEL_ERROR, __FILE__, __LINE__)
