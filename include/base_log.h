@@ -1,12 +1,12 @@
 /**
  * @file base_log.h
- * @brief 日志封装库，提供类似 glog 的日志接口
+ * @brief Logging wrapper library, providing glog-like logging interface
  * 
- * 使用示例：
- *   LOG_INFO << "这是一条信息日志";
- *   LOG_WARN << "这是一条警告日志";
- *   LOG_ERR << "这是一条错误日志";
- *   LOG_FATAL << "这是一条致命错误日志";
+ * Usage example:
+ *   LOG_INFO << "This is an info log";
+ *   LOG_WARN << "This is a warning log";
+ *   LOG_ERR << "This is an error log";
+ *   LOG_FATAL << "This is a fatal error log";
  */
 
 #pragma once
@@ -25,8 +25,8 @@
 
 namespace snow {
 
-// 日志级别枚举，对应 glog 的级别
-// 使用 LOG_LEVEL_ 前缀避免与 Windows 系统宏冲突（如 ERROR, INFO 等）
+// Log level enumeration, corresponding to glog levels
+// Use LOG_LEVEL_ prefix to avoid conflicts with Windows system macros (e.g., ERROR, INFO, etc.)
 enum LogSeverity {
     LOG_LEVEL_INFO = 0,
     LOG_LEVEL_WARNING = 1,
@@ -34,7 +34,7 @@ enum LogSeverity {
     LOG_LEVEL_FATAL = 3
 };
 
-// 日志流类，用于流式输出
+// Log stream class for stream output
 class LogMessage {
 public:
     LogMessage(LogSeverity severity, const char* file, int line)
@@ -50,14 +50,14 @@ public:
         }
     }
 
-    // 流式输出操作符
+    // Stream output operator
     template<typename T>
     LogMessage& operator<<(const T& value) {
         message_ << value;
         return *this;
     }
 
-    // 支持 std::endl 等操作符
+    // Support std::endl and other manipulators
     LogMessage& operator<<(std::ostream& (*manip)(std::ostream&)) {
         message_ << manip;
         return *this;
@@ -69,7 +69,7 @@ private:
             return;
         }
 
-        // 获取当前时间
+        // Get current time
         auto now = std::chrono::system_clock::now();
         auto time_t = std::chrono::system_clock::to_time_t(now);
         auto ms = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -82,19 +82,19 @@ private:
             localtime_r(&time_t, &tm_buf);
         #endif
         
-        // 格式化日期时间：YYYYMMDD HH:MM:SS.uuuuuu
+        // Format date time: YYYYMMDD HH:MM:SS.uuuuuu
         char time_str[32];
         std::snprintf(time_str, sizeof(time_str), "%04d%02d%02d %02d:%02d:%02d.%06ld",
                      tm_buf.tm_year + 1900, tm_buf.tm_mon + 1, tm_buf.tm_mday,
                      tm_buf.tm_hour, tm_buf.tm_min, tm_buf.tm_sec, static_cast<long>(ms.count()));
 
-        // 获取线程ID
+        // Get thread ID
         std::thread::id thread_id = std::this_thread::get_id();
         std::ostringstream thread_id_str;
         thread_id_str << thread_id;
         size_t thread_hash = std::hash<std::thread::id>{}(thread_id);
 
-        // 级别字符
+        // Level character
         char level_char;
         spdlog::level::level_enum spdlog_level;
         switch (severity_) {
@@ -119,21 +119,21 @@ private:
                 spdlog_level = spdlog::level::info;
         }
 
-        // 提取文件名（不含路径）
+        // Extract filename (without path)
         std::string filename = file_;
         size_t pos = filename.find_last_of("/\\");
         if (pos != std::string::npos) {
             filename = filename.substr(pos + 1);
         }
 
-        // 构建 glog 风格格式：I20231224 09:30:45.123456 12345 file.cpp:123] message
+        // Build glog-style format: I20231224 09:30:45.123456 12345 file.cpp:123] message
         std::ostringstream formatted_msg;
         formatted_msg << level_char << time_str << " " 
                       << thread_hash << " " 
                       << filename << ":" << line_ << "] " 
                       << message_.str();
         
-        // 使用 spdlog 记录（使用 raw 模式，因为格式已经完整）
+        // Use spdlog to record (use raw mode, format is already complete)
         logger_->log(spdlog_level, formatted_msg.str());
     }
 
@@ -146,15 +146,15 @@ private:
     friend class Logger;
 };
 
-// 日志管理器类
+// Log manager class
 class Logger {
 public:
     /**
-     * @brief 初始化日志系统
-     * @param log_file 日志文件路径（可选，为空则只输出到控制台）
-     * @param max_file_size 单个日志文件最大大小（字节）
-     * @param max_files 保留的日志文件数量
-     * @param level 日志级别
+     * @brief Initialize logging system
+     * @param log_file Log file path (optional, empty means console only)
+     * @param max_file_size Maximum size of a single log file (bytes)
+     * @param max_files Number of log files to keep
+     * @param level Log level
      */
     static void Init(const std::string& log_file = "",
                      size_t max_file_size = 10 * 1024 * 1024,  // 10MB
@@ -162,38 +162,38 @@ public:
                      spdlog::level::level_enum level = spdlog::level::info) {
         std::vector<spdlog::sink_ptr> sinks;
 
-        // 控制台输出（带颜色）
+        // Console output (with color)
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        // 格式已经在 LogMessage::Flush() 中构建，这里只输出原始消息
+        // Format is already built in LogMessage::Flush(), here only output raw message
         console_sink->set_pattern("%v");
         sinks.push_back(console_sink);
 
-        // 文件输出（如果指定了日志文件）
+        // File output (if log file is specified)
         if (!log_file.empty()) {
             try {
                 auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
                     log_file, max_file_size, max_files);
-                // 格式已经在 LogMessage::Flush() 中构建，这里只输出原始消息
+                // Format is already built in LogMessage::Flush(), here only output raw message
                 file_sink->set_pattern("%v");
                 sinks.push_back(file_sink);
             } catch (const spdlog::spdlog_ex& ex) {
-                // 如果文件创建失败，只使用控制台输出
+                // If file creation fails, use console output only
                 spdlog::warn("Failed to create log file: {}", ex.what());
             }
         }
 
-        // 创建 logger
+        // Create logger
         LogMessage::logger_ = std::make_shared<spdlog::logger>("snow_logger", sinks.begin(), sinks.end());
         LogMessage::logger_->set_level(level);
-        LogMessage::logger_->flush_on(spdlog::level::warn);  // WARNING 及以上级别立即刷新
+        LogMessage::logger_->flush_on(spdlog::level::warn);  // WARNING and above levels flush immediately
 
-        // 注册为默认 logger
+        // Register as default logger
         spdlog::register_logger(LogMessage::logger_);
         spdlog::set_default_logger(LogMessage::logger_);
     }
 
     /**
-     * @brief 设置日志级别
+     * @brief Set log level
      */
     static void SetLevel(spdlog::level::level_enum level) {
         if (LogMessage::logger_) {
@@ -202,7 +202,7 @@ public:
     }
 
     /**
-     * @brief 刷新日志缓冲区
+     * @brief Flush log buffer
      */
     static void Flush() {
         if (LogMessage::logger_) {
@@ -211,7 +211,7 @@ public:
     }
 
     /**
-     * @brief 关闭日志系统
+     * @brief Shutdown logging system
      */
     static void Shutdown() {
         if (LogMessage::logger_) {
@@ -222,19 +222,19 @@ public:
     }
 };
 
-// 静态成员初始化
+// Static member initialization
 std::shared_ptr<spdlog::logger> LogMessage::logger_ = nullptr;
 
 } // namespace snow
 
-// 日志宏定义，类似 glog 风格
-// 注意：宏名称保持 LOG_INFO, LOG_WARN 等，但内部使用带前缀的枚举值避免冲突
+// Log macro definitions, similar to glog style
+// Note: Macro names remain LOG_INFO, LOG_WARN, etc., but internally use prefixed enum values to avoid conflicts
 #define LOG_INFO  snow::LogMessage(snow::LOG_LEVEL_INFO, __FILE__, __LINE__)
 #define LOG_WARN  snow::LogMessage(snow::LOG_LEVEL_WARNING, __FILE__, __LINE__)
 #define LOG_ERR   snow::LogMessage(snow::LOG_LEVEL_ERROR, __FILE__, __LINE__)
 #define LOG_FATAL snow::LogMessage(snow::LOG_LEVEL_FATAL, __FILE__, __LINE__)
 
-// 条件日志宏
+// Conditional log macros
 #define LOG_INFO_IF(condition)  \
     !(condition) ? (void)0 : snow::LogMessage(snow::LOG_LEVEL_INFO, __FILE__, __LINE__)
 #define LOG_WARN_IF(condition) \

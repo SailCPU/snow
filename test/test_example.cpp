@@ -1,8 +1,8 @@
 /**
- * 单元测试示例
+ * Unit test example
  * 
- * 编译: g++ -std=c++17 -I third_party/eigen -I third_party/spdlog/include -I third_party test_example.cpp -o test_example
- * 运行: ./test_example
+ * Compile: g++ -std=c++17 -I third_party/eigen -I third_party/spdlog/include -I third_party test_example.cpp -o test_example
+ * Run: ./test_example
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -13,7 +13,7 @@
 using json = nlohmann::json;
 using namespace Eigen;
 
-// 机器人状态结构（简化版，用于测试）
+// Robot state structure (simplified version for testing)
 struct RobotState {
     Vector3d position;
     Vector3d velocity;
@@ -38,7 +38,7 @@ struct RobotState {
     }
 };
 
-TEST_CASE("RobotState JSON 序列化") {
+TEST_CASE("RobotState JSON serialization") {
     RobotState state;
     state.position = Vector3d(1.0, 2.0, 3.0);
     state.velocity = Vector3d(0.1, 0.2, 0.3);
@@ -52,7 +52,7 @@ TEST_CASE("RobotState JSON 序列化") {
     CHECK(restored.timestamp == state.timestamp);
 }
 
-TEST_CASE("Eigen 矩阵运算") {
+TEST_CASE("Eigen matrix operations") {
     Matrix3d rotation = AngleAxisd(M_PI/4, Vector3d::UnitZ()).toRotationMatrix();
     Vector3d point(1, 0, 0);
     Vector3d rotated = rotation * point;
@@ -62,7 +62,7 @@ TEST_CASE("Eigen 矩阵运算") {
     CHECK(rotated.y() == doctest::Approx(std::sqrt(2.0)/2.0));
 }
 
-TEST_CASE("JSON 基本操作") {
+TEST_CASE("JSON basic operations") {
     json j = {
         {"command", "move"},
         {"target", {1.0, 2.0, 3.0}},

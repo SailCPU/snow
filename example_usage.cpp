@@ -1,22 +1,22 @@
 /**
- * 机器人控制系统框架 - 使用示例
+ * Robot control system framework - Usage example
  * 
- * 演示如何使用第三方库进行跨进程消息传递
+ * Demonstrates how to use third-party libraries for inter-process message passing
  */
 
 #include <iostream>
 #include <thread>
 #include <chrono>
 
-// 第三方库
+// Third-party libraries
 #include <Eigen/Dense>
 #include "nlohmann/json.hpp"
 #include "httplib.h"
-#include "base_log.h"  // 使用封装的日志库
+#include "base_log.h"  // Using encapsulated logging library
 using json = nlohmann::json;
 using namespace Eigen;
 
-// 机器人消息结构
+// Robot message structure
 struct RobotState {
     Vector3d position;
     Vector3d velocity;
@@ -41,7 +41,7 @@ struct RobotState {
     }
 };
 
-// HTTP 服务器示例（跨进程通信）
+// HTTP server example (inter-process communication)
 void start_http_server() {
     httplib::Server svr;
     
@@ -50,24 +50,24 @@ void start_http_server() {
     current_state.velocity = Vector3d(0, 0, 0);
     current_state.timestamp = 0.0;
     
-    // 获取机器人状态
+    // Get robot state
     svr.Get("/robot/state", [&current_state](const httplib::Request&, httplib::Response& res) {
         res.set_content(current_state.to_json().dump(), "application/json");
     });
     
-    // 设置机器人命令
+    // Set robot command
     svr.Post("/robot/command", [&current_state](const httplib::Request& req, httplib::Response& res) {
         try {
             auto j = json::parse(req.body);
             std::string command = j["command"];
             
-            LOG_INFO << "收到命令: " << command;
+            LOG_INFO << "Received command: " << command;
             
-            // 处理命令逻辑
+            // Process command logic
             if (command == "move") {
                 auto target = j["target"];
                 current_state.position = Vector3d(target[0], target[1], target[2]);
-                LOG_INFO << "移动到位置: (" 
+                LOG_INFO << "Move to position: (" 
                     << current_state.position.x() << ", "
                     << current_state.position.y() << ", "
                     << current_state.position.z() << ")";
@@ -75,30 +75,30 @@ void start_http_server() {
             
             res.set_content(json{{"status", "ok"}}.dump(), "application/json");
         } catch (const std::exception& e) {
-            LOG_ERR << "处理命令失败: " << e.what();
+            LOG_ERR << "Failed to process command: " << e.what();
             res.status = 400;
             res.set_content(json{{"error", e.what()}}.dump(), "application/json");
         }
     });
     
-    LOG_INFO << "HTTP 服务器启动在 http://0.0.0.0:8080";
+    LOG_INFO << "HTTP server started on http://0.0.0.0:8080";
     svr.listen("0.0.0.0", 8080);
 }
 
 int main(int argc, char* argv[]) {
-    // 初始化日志系统
+    // Initialize logging system
     snow::Logger::Init();
-    LOG_INFO << "机器人控制系统框架启动";
+    LOG_INFO << "Robot control system framework starting";
     
-    // Eigen 使用示例
+    // Eigen usage example
     Vector3d position(1.0, 2.0, 3.0);
     Vector3d velocity(0.1, 0.2, 0.3);
     Vector3d acceleration = velocity * 0.1;
     
-    LOG_INFO << "位置: (" << position.x() << ", " << position.y() << ", " << position.z() << ")";
-    LOG_INFO << "速度: (" << velocity.x() << ", " << velocity.y() << ", " << velocity.z() << ")";
+    LOG_INFO << "Position: (" << position.x() << ", " << position.y() << ", " << position.z() << ")";
+    LOG_INFO << "Velocity: (" << velocity.x() << ", " << velocity.y() << ", " << velocity.z() << ")";
     
-    // JSON 使用示例
+    // JSON usage example
     RobotState state;
     state.position = position;
     state.velocity = velocity;
@@ -106,12 +106,12 @@ int main(int argc, char* argv[]) {
         std::chrono::system_clock::now().time_since_epoch()).count();
     
     json j = state.to_json();
-    LOG_INFO << "状态 JSON: " << j.dump(2);
+    LOG_INFO << "State JSON: " << j.dump(2);
     
-    // 启动 HTTP 服务器（用于跨进程通信）
+    // Start HTTP server (for inter-process communication)
     start_http_server();
     
-    // 清理日志系统
+    // Cleanup logging system
     snow::Logger::Shutdown();
     return 0;
 }

@@ -1,6 +1,6 @@
 /**
  * @file test_base_log.cpp
- * @brief 测试 base_log.h 日志功能
+ * @brief Test base_log.h logging functionality
  */
 
 #include "base_log.h"
@@ -8,41 +8,41 @@
 #include <chrono>
 
 int main() {
-    // 初始化日志系统（只输出到控制台）
+    // Initialize logging system (console output only)
     snow::Logger::Init();
     
-    // 测试基本日志输出
-    LOG_INFO << "这是一条信息日志";
-    LOG_WARN << "这是一条警告日志";
-    LOG_ERR << "这是一条错误日志";
+    // Test basic log output
+    LOG_INFO << "This is an info log";
+    LOG_WARN << "This is a warning log";
+    LOG_ERR << "This is an error log";
     
-    // 测试流式输出
+    // Test stream output
     int value = 42;
-    LOG_INFO << "数值: " << value << ", 字符串: " << "test";
+    LOG_INFO << "Value: " << value << ", String: " << "test";
     
-    // 测试条件日志
+    // Test conditional logging
     bool condition = true;
-    LOG_INFO_IF(condition) << "条件为真时的日志";
-    LOG_INFO_IF(!condition) << "这条日志不会输出";
+    LOG_INFO_IF(condition) << "Log when condition is true";
+    LOG_INFO_IF(!condition) << "This log will not output";
     
-    // 测试多线程
+    // Test multi-threading
     std::thread t1([]() {
-        LOG_INFO << "来自线程1的日志";
+        LOG_INFO << "Log from thread 1";
     });
     
     std::thread t2([]() {
-        LOG_INFO << "来自线程2的日志";
+        LOG_INFO << "Log from thread 2";
     });
     
     t1.join();
     t2.join();
     
-    // 测试文件日志
+    // Test file logging
     snow::Logger::Shutdown();
-    snow::Logger::Init("test.log", 1024 * 1024, 3);  // 1MB 文件，保留3个
-    LOG_INFO << "这条日志会写入文件";
+    snow::Logger::Init("test.log", 1024 * 1024, 3);  // 1MB file, keep 3 files
+    LOG_INFO << "This log will be written to file";
     
-    // 清理
+    // Cleanup
     snow::Logger::Flush();
     snow::Logger::Shutdown();
     

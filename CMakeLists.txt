@@ -4,11 +4,11 @@ project(snow)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 创建统一的 snow 接口库，包含所有第三方库
+# Create unified snow interface library, including all third-party libraries
 add_library(snow INTERFACE)
 add_library(snow::snow ALIAS snow)
 
-# 设置包含目录（所有第三方库的头文件路径 + snow 自己的 include 目录）
+# Set include directories (all third-party library header paths + snow's own include directory)
 target_include_directories(snow INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/eigen
@@ -16,6 +16,13 @@ target_include_directories(snow INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
-# 链接线程库（httplib 需要）
-target_link_libraries(snow INTERFACE pthread)
+# Link thread library (required by httplib)
+# On Windows, pthread is not available with MSVC, use Threads::Threads instead
+# On Unix-like systems, use pthread
+if(WIN32)
+    find_package(Threads REQUIRED)
+    target_link_libraries(snow INTERFACE Threads::Threads)
+else()
+    target_link_libraries(snow INTERFACE pthread)
+endif()
 

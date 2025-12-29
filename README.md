@@ -1,6 +1,6 @@
-# Snow - 机器人信息交换库
+# 机器人控制系统框架
 
-Snow 是一个轻量级的机器人信息交换库，提供跨进程通信、日志记录和基础工具功能，作为机器人系统的基础组件。
+一个极简的机器人控制系统框架，支持跨进程消息传递。
 
 ## 项目结构
 
@@ -49,15 +49,15 @@ g++ -std=c++17 \
 ./robot_control
 ```
 
-示例服务器将在 `http://0.0.0.0:8080` 启动，演示如何使用 Snow 进行信息交换。
+服务器将在 `http://0.0.0.0:8080` 启动。
 
-### 测试信息交换 API
+### 测试 API
 
 ```bash
-# 获取机器人状态信息
+# 获取机器人状态
 curl http://localhost:8080/robot/state
 
-# 发送控制命令（JSON格式）
+# 发送移动命令
 curl -X POST http://localhost:8080/robot/command \
   -H "Content-Type: application/json" \
   -d '{"command":"move","target":[1.0,2.0,3.0]}'
@@ -80,29 +80,26 @@ g++ -std=c++17 \
 
 ## 功能特性
 
-Snow 作为机器人信息交换的基础库，提供以下核心功能：
+### 核心库
+- ✅ **Eigen**: 高性能矩阵运算，用于机器人运动学和动力学计算
+- ✅ **nlohmann/json**: JSON 序列化/反序列化，用于消息格式
+- ✅ **cpp-httplib**: HTTP 服务器/客户端，支持跨进程 RESTful API
+- ✅ **spdlog**: 高性能日志记录（底层实现）
+- ✅ **doctest**: 轻量级单元测试框架
 
-### 信息交换能力
-- ✅ **HTTP RESTful API**: 基于 cpp-httplib 的跨进程通信支持
-- ✅ **JSON 消息格式**: 使用 nlohmann/json 进行数据序列化/反序列化
-- ✅ **跨语言兼容**: 标准 HTTP + JSON 协议，支持不同语言和进程间通信
-
-### 基础工具库
-- ✅ **日志系统**: 基于 spdlog 封装的日志库（base_log.h），提供类似 glog 的简洁接口
+### 封装功能
+- ✅ **base_log.h**: 日志封装库，提供类似 glog 的简洁接口
   - 支持流式输出：`LOG_INFO << "message"`
   - 日志格式参考 glog：`I20231224 09:30:45.123456 12345 file.cpp:123] message`
   - 支持控制台和文件输出
   - 线程安全
-- ✅ **数学计算**: Eigen 线性代数库，用于机器人相关的数学运算
-- ✅ **测试框架**: doctest 轻量级单元测试框架
 
-## 作为信息交换库的使用
+## 跨进程通信
 
-Snow 提供了基础的 HTTP 通信能力，可以用于：
+框架使用 HTTP RESTful API 进行跨进程通信：
 
-- **机器人状态查询**: 通过 HTTP GET 请求获取机器人状态信息
-- **命令发送**: 通过 HTTP POST 请求发送控制命令
-- **数据交换**: 使用 JSON 格式在进程间传递结构化数据
+- **GET /robot/state**: 获取当前机器人状态
+- **POST /robot/command**: 发送机器人控制命令
 
 消息格式使用 JSON，便于不同语言和进程间交换数据。
 
@@ -161,23 +158,14 @@ int main() {
 I20231224 09:30:45.123456 12345 main.cpp:42] 这是一条信息日志
 ```
 
-## 设计理念
-
-Snow 旨在作为机器人系统的基础信息交换库：
-
-- **轻量级**: 所有第三方库均为 header-only，无需额外编译步骤
-- **易集成**: 提供统一的 CMake 接口，方便集成到现有项目
-- **跨平台**: 基于标准 C++17，支持 Linux、Windows、macOS
-- **可扩展**: 作为基础库，可以在此基础上构建更复杂的机器人应用
-
 ## 依赖说明
 
 所有第三方库都是 header-only 的，无需额外编译：
-- **Eigen**: 线性代数库，用于数学计算
-- **nlohmann/json**: JSON 序列化/反序列化库
-- **cpp-httplib**: HTTP 服务器/客户端库（需要 pthread）
-- **doctest**: 轻量级单元测试框架
-- **spdlog**: 高性能日志库
+- Eigen: 线性代数库
+- nlohmann/json: JSON 库
+- cpp-httplib: HTTP 库（需要 pthread）
+- doctest: 测试框架
+- spdlog: 日志库
 
 详细说明请查看 `third_party/README.md`。
 
